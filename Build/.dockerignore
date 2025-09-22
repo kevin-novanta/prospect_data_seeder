@@ -1,0 +1,43 @@
+# Ignore Python caches and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environments
+.venv/
+env/
+venv/
+
+# Ignore local config and secrets
+.env
+*.env
+
+# Ignore Git metadata
+.git/
+.gitignore
+
+# Ignore docs and planning
+Planning/
+*.md
+
+# Ignore tests if you don’t want them in the container
+# (keep them if you run tests inside Docker)
+tests/
+*.coverage
+.pytest_cache/
+
+# Ignore build and distribution artifacts
+build/
+dist/
+*.egg-info/
+
+# Ignore editor/system files
+.DS_Store
+.idea/
+.vscode/
+
+# Ignore sample outputs or scratch files
+sample/output/
+tmp/
+*.log
