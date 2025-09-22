@@ -25,3 +25,6 @@ htmlcov/
 .pytest_cache/
 sample/output/
 tmp/
+Planning
+# Ignore all planning docs
+Demos/Prospect_Data_Seeder/Planning/
