@@ -28,3 +28,5 @@ tmp/
 Planning
 # Ignore all planning docs
 Demos/Prospect_Data_Seeder/Planning/
+# Ignore all source code in tools directory
+/Users/kevinnovanta/workflow_accelerator/Demos/Prospect_Data_Seeder/Build/src/tools
