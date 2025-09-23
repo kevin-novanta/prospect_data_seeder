@@ -8,9 +8,12 @@ The parser should:
   2) within each block, get CATEGORY_TITLE (first non-empty text)
   3) iterate SUBCATEGORY_ITEMS list; for each item, find SUBCATEGORY_LINK
   4) detect an "All in …" anchor by text (no :contains in CSS)
+  5) detect "All in" anchors by attribute selectors (ALL_IN_SELECTORS)
+  6) detect directory root links by href substrings (ROOT_HREF_HINTS)
 
 Note: CSS :contains() is not supported by bs4, so we expose ALL_IN_TEXT_HINT
-for the parser to filter anchors by text.
+for the parser to filter anchors by text. Attribute and URL heuristics are
+also provided via ALL_IN_SELECTORS and ROOT_HREF_HINTS.
 """
 from __future__ import annotations
 
@@ -32,6 +35,10 @@ class SelectorSet:
     ALL_IN_ANCHOR_SCAN: List[str]
     # Lowercase text hint to identify the All in link (parser uses contains)
     ALL_IN_TEXT_HINT: str = "all in"
+    # Anchors likely representing All in; attribute-targeted
+    ALL_IN_SELECTORS: List[str] = ()
+    # Href substrings that indicate directory roots
+    ROOT_HREF_HINTS: List[str] = ()
 
 
 # ---- Primary + fallbacks ----
@@ -71,6 +78,14 @@ PRIMARY = SelectorSet(
         'a[href][data-test="all-in"]',
         'a[href]',
     ],
+    ALL_IN_SELECTORS=[
+        'a[href][class*="all-in"]',
+        'a[href][data-test="all-in"]',
+        'a[href][aria-label*="All in"]',
+        'a[href][title*="All in"]',
+        'a[href]'  # last-resort scan; parser will filter by text/URL
+    ],
+    ROOT_HREF_HINTS=['/directory/', '/categories', '/category/'],
 )
 
 # Optional alternative that is more list-based (e.g., older markup)
@@ -92,6 +107,12 @@ ALT_LISTY = SelectorSet(
     ALL_IN_ANCHOR_SCAN=[
         'a[href]'
     ],
+    ALL_IN_SELECTORS=[
+        'a[href][class*="all-in"]',
+        'a[href][data-test="all-in"]',
+        'a[href]'
+    ],
+    ROOT_HREF_HINTS=['/directory/', '/categories', '/category/'],
 )
 
 # Fallback extremely generic selectors (last resort)
@@ -101,6 +122,8 @@ GENERIC = SelectorSet(
     SUBCATEGORY_ITEMS=['li', 'div', '.item'],
     SUBCATEGORY_LINK=['a[href]'],
     ALL_IN_ANCHOR_SCAN=['a[href]'],
+    ALL_IN_SELECTORS=['a[href]'],
+    ROOT_HREF_HINTS=['/directory/', '/categories', '/category/'],
 )
 
 

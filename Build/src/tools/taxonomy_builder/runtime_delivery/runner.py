@@ -4,6 +4,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
+from collections import Counter
 
 from ..config import load as load_config
 from ..logging_setup import get_logger
@@ -36,9 +37,10 @@ def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def run_build(*, html_path: str, out_path: str = "./data/taxonomy.json", profile: str = "dev", include_all_in: bool = False) -> int:
+def run_build(*, html_path: str, out_path: str = "./data/taxonomy.json", profile: str = "dev", include_all_in: Optional[bool] = None) -> int:
     """Run the taxonomy build pipeline and return an exit code (0 success, 2 failure)."""
     cfg = load_config(profile=profile)
+    include_all = cfg.INCLUDE_ALL_IN_IN_CHOICES if include_all_in is None else bool(include_all_in)
     LOGGER.info({
         "event": "runner.start",
         "profile": profile,
@@ -66,11 +68,16 @@ def run_build(*, html_path: str, out_path: str = "./data/taxonomy.json", profile
 
             # 3) Parse → Normalize → Dedupe
             raw = parse_directory(html)
+            counts = Counter(x.get("type") for x in raw if isinstance(x, dict))
+            observability.inc("found_categories", count=counts.get("category", 0))
+            observability.inc("found_subcategories", count=counts.get("subcategory", 0))
+            observability.inc("found_all_in", count=counts.get("all_in", 0))
             observability.inc("parsed_items", count=len(raw))
 
             items = attach_lineage(raw, base_url=DEFAULT_SOURCE_PAGE.replace("/categories", ""))
             items = dedupe_items(items)
             observability.inc("normalized_items", count=len(items))
+            observability.inc("deduped_items", count=len(items))
 
             # 4) Assemble document
             doc = {
@@ -104,13 +111,18 @@ def run_build(*, html_path: str, out_path: str = "./data/taxonomy.json", profile
             final_path = write_taxonomy(doc, out_path)
             # choices.json lives alongside taxonomy.json
             choices_path = str(Path(out_path).with_name("choices.json"))
-            write_choices(items, choices_path, include_all_in=include_all_in)
+            write_choices(items, choices_path, include_all_in=include_all)
 
             LOGGER.info({
                 "event": "runner.success",
                 "taxonomy_path": str(final_path),
                 "choices_path": choices_path,
                 "count": len(items),
+                "type_counts": {
+                    "category": counts.get("category", 0),
+                    "subcategory": counts.get("subcategory", 0),
+                    "all_in": counts.get("all_in", 0),
+                },
             })
             return 0
 

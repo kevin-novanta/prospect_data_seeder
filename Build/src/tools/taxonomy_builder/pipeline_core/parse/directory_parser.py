@@ -1,5 +1,3 @@
-
-
 """Directory page parser
 
 Turns the Clutch directory-like HTML into a flat list of raw items:
@@ -15,6 +13,7 @@ from __future__ import annotations
 
 from typing import List, Dict, Optional
 from bs4 import BeautifulSoup, Tag
+import re
 
 from .selectors import get_selectors, SelectorSet
 
@@ -57,16 +56,50 @@ def _find_link(node: Tag, css_list: list[str]) -> Optional[Tag]:
     return None
 
 
-def _find_all_in(block: Tag, sels: SelectorSet) -> Optional[Tag]:
-    hint = sels.ALL_IN_TEXT_HINT.lower()
-    for css in sels.ALL_IN_ANCHOR_SCAN:
-        for a in block.select(css):
-            if not a or not a.has_attr("href"):
-                continue
-            txt = _clean_text(a.get_text(" ", strip=True)).lower()
-            if hint in txt:
-                return a
-    return None
+def _iter_all_in_candidates(block: Tag, sels: SelectorSet) -> list[Tag]:
+    """Yield anchors in a block that are likely All in … links, using attribute selectors first.
+    Text filtering and URL hints are applied by the caller.
+    """
+    anchors: list[Tag] = []
+    for css in getattr(sels, "ALL_IN_SELECTORS", []) or []:
+        hits = block.select(css)
+        if hits:
+            anchors.extend([a for a in hits if isinstance(a, Tag) and a.has_attr("href")])
+    # de-dupe by id(href) within the block
+    seen = set()
+    uniq: list[Tag] = []
+    for a in anchors:
+        key = a.get("href", "").strip()
+        if key and key not in seen:
+            seen.add(key)
+            uniq.append(a)
+    return uniq
+
+
+def _is_all_in_anchor(a: Tag, sels: SelectorSet, category_name: str) -> bool:
+    """Heuristics to decide if an anchor represents an All in … link.
+    Rules:
+      1) Text starts with/contains 'All in' (case-insensitive)
+      2) aria-label/title contain 'All in'
+      3) href looks like a directory root according to ROOT_HREF_HINTS
+    """
+    hint = (sels.ALL_IN_TEXT_HINT or "All in").lower()
+    txt = _clean_text(a.get_text(" ", strip=True)).lower()
+    if hint in txt:
+        return True
+
+    # attribute-based
+    aria = (a.get("aria-label") or "").lower()
+    title = (a.get("title") or "").lower()
+    if hint in aria or hint in title:
+        return True
+
+    # URL based
+    href = (a.get("href") or "").strip()
+    for frag in (getattr(sels, "ROOT_HREF_HINTS", []) or []):
+        if frag and frag in href:
+            return True
+    return False
 
 
 def parse_directory(html: str) -> List[Dict]:
@@ -123,13 +156,35 @@ def parse_directory(html: str) -> List[Dict]:
                 "parent": cat_name,
             })
 
-        # All-in link (optional per category)
-        all_in = _find_all_in(block, chosen)
-        if all_in is not None:
+        # All-in link(s) (optional per category)
+        emitted = set()
+        candidates = _iter_all_in_candidates(block, chosen)
+        picked: list[Tag] = [a for a in candidates if _is_all_in_anchor(a, chosen, cat_name)]
+
+        # Fallback: URL-pattern detection (root-like hrefs inside this block)
+        if not picked:
+            for a in block.select("a[href]"):
+                if not isinstance(a, Tag) or not a.has_attr("href"):
+                    continue
+                href = (a.get("href") or "").strip()
+                for frag in (getattr(chosen, "ROOT_HREF_HINTS", []) or []):
+                    if frag and frag in href:
+                        picked.append(a)
+                        break
+                if picked:
+                    break
+
+        for a in picked:
+            href = a.get("href", None)
+            name_txt = _clean_text(a.get_text(" ", strip=True)) or f"All in {cat_name}"
+            key = (href or "") + "|" + name_txt
+            if key in emitted:
+                continue
+            emitted.add(key)
             items.append({
                 "type": "all_in",
-                "name": _clean_text(all_in.get_text(" ", strip=True)),
-                "href": all_in.get("href", None),
+                "name": name_txt,
+                "href": href,
                 "parent": cat_name,
             })
 
