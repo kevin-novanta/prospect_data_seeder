@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/taxonomy.schema.json",
+  "title": "Prospect Data Seeder – Taxonomy",
+  "description": "Normalized taxonomy document describing categories, subcategories, and optional 'All in' links.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "source_page", "collected_at", "items"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the taxonomy format (e.g., 0.1.0)",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "source_page": {
+      "type": "string",
+      "format": "uri",
+      "description": "The canonical page where the directory taxonomy was sourced (e.g., https://clutch.co/categories)"
+    },
+    "collected_at": {
+      "type": "string",
+      "description": "UTC timestamp when the taxonomy was collected (RFC3339)",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "items": {
+      "type": "array",
+      "description": "Flat list of taxonomy entries in encounter order.",
+      "items": { "$ref": "#/definitions/item" }
+    }
+  },
+  "definitions": {
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "name", "slug", "url"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable identifier constructed from type/slug[/parent_slug].",
+          "pattern": "^(category|subcategory|all_in):[a-z0-9-]+(?::[a-z0-9-]+)?$"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["category", "subcategory", "all_in"],
+          "description": "Entry type"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Display name (cleaned)"
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "description": "ASCII-safe slug"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Canonical absolute URL if navigable; may be empty string when not applicable",
+          "minLength": 0
+        },
+        "parent_id": {
+          "type": "string",
+          "description": "ID of parent category when applicable (e.g., category:advertising-marketing)",
+          "pattern": "^category:[a-z0-9-]+$"
+        },
+        "parent": {
+          "type": "string",
+          "description": "Parent display name (optional)"
+        },
+        "parent_slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "description": "Parent slug (optional)"
+        }
+      }
+    }
+  }
+}

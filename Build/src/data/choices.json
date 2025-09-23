@@ -1,0 +1,28 @@
+{
+  "generated_at": "2025-09-23T01:13:22Z",
+  "version": "1.0",
+  "categories": [
+    {
+      "name": "Advertising & Marketing",
+      "slug": "advertising-marketing",
+      "url": "https://clutch.co",
+      "subs": [
+        {
+          "name": "SEO",
+          "slug": "seo",
+          "url": "https://clutch.co/seo"
+        },
+        {
+          "name": "Social Media Marketing",
+          "slug": "social-media-marketing",
+          "url": "https://clutch.co/social-media-marketing"
+        },
+        {
+          "name": "Email Marketing",
+          "slug": "email-marketing",
+          "url": "https://clutch.co/email-marketing"
+        }
+      ]
+    }
+  ]
+}

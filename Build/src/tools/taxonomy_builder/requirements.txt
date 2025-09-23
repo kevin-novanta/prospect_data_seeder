@@ -1,0 +1,16 @@
+
+
+
+# Baseline Scraper Stack
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+lxml>=4.9.3
+tenacity>=8.2.3
+jsonschema>=4.19.0
+python-dotenv>=1.0.0
+structlog>=23.1.0
+
+# Optional (headless, observability, etc.)
+# playwright>=1.39.0
+# opentelemetry-api>=1.20.0
+# opentelemetry-sdk>=1.20.0

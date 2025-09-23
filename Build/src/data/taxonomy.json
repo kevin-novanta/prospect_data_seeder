@@ -1,0 +1,54 @@
+{
+  "version": "0.1.0",
+  "source": "fixture",
+  "collected_at": "2025-01-01T00:00:00Z",
+  "items": [
+    {
+      "id": "category:advertising-marketing",
+      "type": "category",
+      "name": "Advertising & Marketing",
+      "slug": "advertising-marketing",
+      "url": "https://clutch.co"
+    },
+    {
+      "id": "subcategory:advertising-marketing:seo",
+      "type": "subcategory",
+      "name": "SEO",
+      "slug": "seo",
+      "url": "https://clutch.co/seo",
+      "parent": "Advertising & Marketing",
+      "parent_slug": "advertising-marketing",
+      "parent_id": "category:advertising-marketing"
+    },
+    {
+      "id": "subcategory:advertising-marketing:social-media-marketing",
+      "type": "subcategory",
+      "name": "Social Media Marketing",
+      "slug": "social-media-marketing",
+      "url": "https://clutch.co/social-media-marketing",
+      "parent": "Advertising & Marketing",
+      "parent_slug": "advertising-marketing",
+      "parent_id": "category:advertising-marketing"
+    },
+    {
+      "id": "subcategory:advertising-marketing:email-marketing",
+      "type": "subcategory",
+      "name": "Email Marketing",
+      "slug": "email-marketing",
+      "url": "https://clutch.co/email-marketing",
+      "parent": "Advertising & Marketing",
+      "parent_slug": "advertising-marketing",
+      "parent_id": "category:advertising-marketing"
+    },
+    {
+      "id": "all_in:advertising-marketing:all-in-advertising-marketing",
+      "type": "all_in",
+      "name": "All in Advertising & Marketing",
+      "slug": "all-in-advertising-marketing",
+      "url": "https://clutch.co/advertising-marketing/all",
+      "parent": "Advertising & Marketing",
+      "parent_slug": "advertising-marketing",
+      "parent_id": "category:advertising-marketing"
+    }
+  ]
+}
